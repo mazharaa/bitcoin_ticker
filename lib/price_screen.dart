@@ -1,5 +1,7 @@
 import 'package:bitcoin_ticker/coin_data.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 
 class PriceScreen extends StatefulWidget {
   const PriceScreen({super.key});
@@ -9,7 +11,76 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
-  String selectedCurrency = currenciesList.first;
+  int selectedCurrency = 0;
+
+  DropdownButton<String> androidDropdown() {
+    return DropdownButton<String>(
+        value: currenciesList[selectedCurrency],
+        items: currenciesList.map<DropdownMenuItem<String>>((String value){
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+        onChanged: (String? value) {
+          setState(() {
+            selectedCurrency = currenciesList.indexOf(value!);
+          });
+        }
+    );
+  }
+
+  CupertinoButton _cupertinoButton() {
+    return CupertinoButton(
+      child: Text(
+        currenciesList[selectedCurrency],
+        style: const TextStyle(color: Colors.white),
+      ),
+      onPressed: () => _showDialog(
+        CupertinoPicker(
+          magnification: 1.22,
+          squeeze: 1.2,
+          useMagnifier: true,
+          itemExtent: 32,
+          scrollController: FixedExtentScrollController(initialItem: selectedCurrency),
+          onSelectedItemChanged: (int value) {
+            setState(() {
+              selectedCurrency = value;
+            });
+          },
+          children: List<Widget>.generate(
+            currenciesList.length, (int index) => Center(
+              child: Text(currenciesList[index]),
+            )
+          )
+        )
+      )
+    );
+  }
+
+  void _showDialog(Widget child) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 216,
+        padding: const EdgeInsets.only(top: 6),
+        margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: SafeArea(
+          top: false,
+          child: child,
+        ),
+      )
+    );
+  }
+
+  Widget getPicker() {
+    if(Platform.isAndroid) {
+      return androidDropdown();
+    } else {
+      return _cupertinoButton();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,19 +117,12 @@ class _PriceScreenState extends State<PriceScreen> {
             height: 100,
             color: Colors.lightBlue,
             child: Center(
-              child: DropdownButton<String>(
-                value: selectedCurrency,
-                items: currenciesList.map<DropdownMenuItem<String>>((String value){
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? value) {
-                  setState(() {
-                    selectedCurrency = value!;
-                  });
-                }
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Currency : '),
+                  getPicker()
+                ]
               ),
             ),
           )
