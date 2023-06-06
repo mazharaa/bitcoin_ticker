@@ -15,7 +15,8 @@ class _PriceScreenState extends State<PriceScreen> {
   String rate = '?';
 
   void getRate() async {
-    var rateData = await CoinData().getCoinData('USD', 'BTC');
+    var rateData = await CoinData()
+        .getCoinData(currenciesList[selectedCurrency], 'BTC');
 
     if(mounted) {
       setState(() {
@@ -32,18 +33,19 @@ class _PriceScreenState extends State<PriceScreen> {
 
   DropdownButton<String> androidDropdown() {
     return DropdownButton<String>(
-        value: currenciesList[selectedCurrency],
-        items: currenciesList.map<DropdownMenuItem<String>>((String value){
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList(),
-        onChanged: (String? value) {
-          setState(() {
-            selectedCurrency = currenciesList.indexOf(value!);
-          });
-        }
+      value: currenciesList[selectedCurrency],
+      items: currenciesList.map<DropdownMenuItem<String>>((String value){
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      onChanged: (String? value) {
+        setState(() {
+          selectedCurrency = currenciesList.indexOf(value!);
+          getRate();
+        });
+      }
     );
   }
 
@@ -112,7 +114,7 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 28),
                 child: Text(
-                  '1 BTC = $rate USD',
+                  '1 BTC = $rate ${currenciesList[selectedCurrency]}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 20,

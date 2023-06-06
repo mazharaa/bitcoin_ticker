@@ -1,9 +1,9 @@
-import 'package:bitcoin_ticker/configure.dart';
+import 'package:bitcoin_ticker/configure.dart'; //Used for storing coinapi.io API key
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 const coinApi = 'https://rest.coinapi.io/v1/exchangerate/';
-const apiKey = api;
+const apiKey = api; //Get API key from coinapi.io
 
 const List<String> currenciesList = [
   'AUD',
