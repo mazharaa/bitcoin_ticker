@@ -12,6 +12,23 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   int selectedCurrency = 0;
+  String rate = '?';
+
+  void getRate() async {
+    var rateData = await CoinData().getCoinData('USD', 'BTC');
+
+    if(mounted) {
+      setState(() {
+        rate = rateData['rate'].toInt().toString();
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getRate();
+  }
 
   DropdownButton<String> androidDropdown() {
     return DropdownButton<String>(
@@ -74,14 +91,6 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
-  Widget getPicker() {
-    if(Platform.isAndroid) {
-      return androidDropdown();
-    } else {
-      return _cupertinoButton();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,12 +109,12 @@ class _PriceScreenState extends State<PriceScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10)
               ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 28),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 28),
                 child: Text(
-                  '1 BTC = ? USD',
+                  '1 BTC = $rate USD',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     color: Colors.white
                   ),
@@ -121,7 +130,7 @@ class _PriceScreenState extends State<PriceScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text('Currency : '),
-                  getPicker()
+                  Platform.isIOS ? _cupertinoButton() : androidDropdown()
                 ]
               ),
             ),
