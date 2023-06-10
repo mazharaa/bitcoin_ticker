@@ -12,15 +12,29 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   int selectedCurrency = 0;
-  String rate = '?';
+  Map<String, String> coinRate = {};
+
+  void getMapCoin() {
+    for(String coin in cryptoList) {
+      coinRate[coin] = '?';
+    }
+  }
 
   void getRate() async {
-    var rateData = await CoinData()
-        .getCoinData(currenciesList[selectedCurrency], 'BTC');
+    var btcRate = await CoinData()
+        .getCoinData(currenciesList[selectedCurrency], cryptoList[0]);
+
+    var ethRate = await CoinData()
+        .getCoinData(currenciesList[selectedCurrency], cryptoList[1]);
+
+    var ltcRate = await CoinData()
+        .getCoinData(currenciesList[selectedCurrency], cryptoList[2]);
 
     if(mounted) {
       setState(() {
-        rate = rateData['rate'].toInt().toString();
+        coinRate[cryptoList[0]] = btcRate['rate'].toInt().toString();
+        coinRate[cryptoList[1]] = ethRate['rate'].toInt().toString();
+        coinRate[cryptoList[2]] = ltcRate['rate'].toInt().toString();
       });
     }
   }
@@ -28,6 +42,7 @@ class _PriceScreenState extends State<PriceScreen> {
   @override
   void initState() {
     super.initState();
+    getMapCoin();
     getRate();
   }
 
@@ -43,6 +58,7 @@ class _PriceScreenState extends State<PriceScreen> {
       onChanged: (String? value) {
         setState(() {
           selectedCurrency = currenciesList.indexOf(value!);
+          getMapCoin();
           getRate();
         });
       }
@@ -61,7 +77,9 @@ class _PriceScreenState extends State<PriceScreen> {
           squeeze: 1.2,
           useMagnifier: true,
           itemExtent: 32,
-          scrollController: FixedExtentScrollController(initialItem: selectedCurrency),
+          scrollController: FixedExtentScrollController(
+            initialItem: selectedCurrency
+          ),
           onSelectedItemChanged: (int value) {
             setState(() {
               selectedCurrency = value;
@@ -103,26 +121,17 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 28),
-                child: Text(
-                  '1 BTC = $rate ${currenciesList[selectedCurrency]}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    color: Colors.white
-                  ),
-                ),
-              ),
-            ),
+          Column(
+            children: [
+              const Padding(padding: EdgeInsets.only(top: 10)),
+              for(String coin in cryptoList) (
+                CoinCard(
+                  coin: coin,
+                  rate: coinRate[coin]!,
+                  currency: currenciesList[selectedCurrency]
+                )
+              )
+            ]
           ),
           Container(
             height: 100,
@@ -138,6 +147,47 @@ class _PriceScreenState extends State<PriceScreen> {
             ),
           )
         ],
+      ),
+    );
+  }
+}
+
+class CoinCard extends StatelessWidget {
+  const CoinCard({
+    super.key,
+    required this.coin,
+    required this.rate,
+    required this.currency,
+  });
+
+  final String coin;
+  final String rate;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: Card(
+        color: Colors.lightBlueAccent,
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10)
+        ),
+        child: SizedBox(
+          width: 300,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 28),
+            child: Text(
+              '1 $coin = $rate $currency',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 20,
+                color: Colors.white
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
